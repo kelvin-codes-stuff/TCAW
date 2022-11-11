@@ -4,16 +4,14 @@ import requests_cache
 from dotenv import load_dotenv
 import os
 
-#TODO: 1) Add cat information function by breed.
-#TODO: 2) Add cache for needed functions. 3) Make code more flexible.
+#TODO: Make code more flexible.
+
 # Loads env values
 load_dotenv()
 
-# Caching
+# Caching (Only if .env CACHE is true!)
 if os.getenv("CACHE") == "True":
     requests_cache.install_cache(cache_name='URL_caching', backend='sqlite', expire_after=180)
-
-
 
 # Base URL and API key stuff, adding header to request.
 BASE_API_URL = "https://api.thecatapi.com/v1/"
@@ -27,6 +25,7 @@ class Url_join():
     images_search = "images/search"
     show_vote_limit10 = "votes?limit=10&order=DESC"
     show_favourites = "favourites"
+
 
 
 # Main class to access all different functions
