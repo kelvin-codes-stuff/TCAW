@@ -4,4 +4,5 @@ from TheCatApiWrapper import *
 print(Tcaw.getRandomImage())
 
 # Getting image of a cat breed
-print(Tcaw.GetBreedImage("beng"))
+print(Tcaw.GetBreedImage("toyger"))
+

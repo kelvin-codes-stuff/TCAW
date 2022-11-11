@@ -4,3 +4,5 @@ __pycache__
 test.py
 notes.txt
 test2.py
+filter_id_test.py
+URL_caching.sqlite
