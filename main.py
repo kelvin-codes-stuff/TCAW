@@ -1,7 +1,8 @@
 from TheCatApiWrapper import *
 
 # Getting a random cat image
-print(Tcaw.getImage())
+print(Tcaw.getRandomImage())
 
 # Getting image of a cat breed
-print(Tcaw.get_breed_img("beng"))
+print(Tcaw.GetBreedImage("toyger"))
+
