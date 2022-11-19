@@ -8,6 +8,7 @@ from datetime import datetime
 #TODO: More information inside comments
 #TODO: Make code more flexible
 #TODO: Make handling_url more efficient
+#TODO:  70-71 make request also in cache
 
 # Loads env values
 load_dotenv()
@@ -18,41 +19,40 @@ API_KEY = os.getenv("API_KEY")
 HEADERS = {f"x-api-key": "{API_KEY}"}
 
 # Cache module
-cache_files = {}
+# cache_files = {}
+
 class Cache:
-    def __init__(self, breed, breedkey, img_url):
+    
+    def __init__(self):
+        self.cache_files = {}
 
-        print(breed, breedkey, img_url)
+    def write(self, breed, breedkey, img_url):
 
-        self.breed = breed
-        self.breedkey = breedkey
-        self.img_url = img_url
-
-        print(self.breed, self.breed)
-
-    def write(self):
         now = datetime.now()
-        cache_files[self.breed] = {
-            "breed_id": self.breedkey,
+        self.cache_files[breed] = {
+            "breed_id": breedkey,
             "expire": int(now.strftime("%H%M%S")) + 10,
-            "image_url": self.img_url
+            "image_url": img_url
         }
 
-    def read(self):
-        if not (cache_files.get(self.breed) is None):
-            return cache_files[self.breed]["image_url"]
-        return None
+    def read(self, breed):
 
-    def check(self):
+        if not (self.cache_files.get(breed) is None):
+            return self.cache_files[breed]["image_url"]
+        # return None
+
+    def check(self, breed):
         now = datetime.now()
-
-        if int(now.strftime("%H%M%S")) > cache_files[self.breed]["expire"]:
-            return True
-
-
+        if int(now.strftime("%H%M%S")) > self.cache_files[breed]["expire"]:
+            return None
+        
+        return "IDK"
+                
 
 # Main class to access all different functions
 class Tcaw:
+
+    cache = Cache()
 
     # Gets a random image
     def get_random_image():
@@ -64,7 +64,6 @@ class Tcaw:
 
     # Gets a image from the requested cat breed
     def get_breed_image(self, breed):
-        cache = Cache()
         # Request all breeds, if breed is in the request, get the id from that breed
         for key in requests.get("https://api.thecatapi.com/v1/breeds").json():
             # if key is breed input, add id from that breed to cat_id
@@ -78,17 +77,18 @@ class Tcaw:
 
                 if self.cache.read(breed) == None:   
                     print("DEBUG, writing to cache")
+                    self.cache.write(breed, key["id"], get_request.json()[0]["url"])
+                    return breed, key["id"], get_request.json()[0]["url"]
+
+                if self.cache.check(breed) == None:
+                    print("DEBUG, expired, writing new to cache")
                     self.cache.write(breed, breedkey=key["id"], img_url=get_request.json()[0]["url"])
                     return breed, key["id"], get_request.json()[0]["url"]
 
-                if Cache.check(breed):
-                    print("DEBUG, expired, writing new to cache")
-                    Cache.check(breed, breedkey=key["id"], img_url=get_request.json()[0]["url"])
-                    return breed, key["id"], get_request.json()[0]["url"]
-
-                if Cache.check(breed) != None:
+                if self.cache.check(breed) != None:
                     print("DEBUG, reading from cache")
-                    return Cache.read(breed)
+                    return self.cache.read(breed)
+
 
 
         
@@ -102,3 +102,19 @@ def handling_url(get_request):
             return get_request.json()[0]["url"]
         # If result is nothing return "No result"
         return "Error, no results!"        
+
+
+# UI
+while True:
+    tcaw = Tcaw()
+
+    # Getting image of a cat breed
+    input_breed_user = input(">").lower()
+
+    if input_breed_user == "exit":
+        break
+
+    if input_breed_user == "random":
+        print(tcaw.get_random_image())        
+    else:
+        print(tcaw.get_breed_image(breed=input_breed_user))
