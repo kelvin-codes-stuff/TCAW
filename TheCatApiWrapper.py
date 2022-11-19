@@ -4,8 +4,6 @@ from dotenv import load_dotenv
 import os
 from datetime import datetime
 
-
-#TODO: Make own caching code
 #TODO: Use Exception instead of "return "Error"
 #TODO: More information inside comments
 #TODO: Make code more flexible
@@ -19,32 +17,40 @@ BASE_API_URL = "https://api.thecatapi.com/v1/"
 API_KEY = os.getenv("API_KEY")
 HEADERS = {f"x-api-key": "{API_KEY}"}
 
-
 # Cache module
 cache_files = {}
+class Cache:
+    def __init__(self, breed, breedkey, img_url):
 
-def write_cache(breed, breedkey, img_url):
-    now = datetime.now()
-    cache_files[breed] = {
-        "breed_id": breedkey,
-        "expire": int(now.strftime("%H%M%S")) + 10,
-        "image_url": img_url
-    }
-    return cache_files[breed]["image_url"]
+        print(breed, breedkey, img_url)
 
-def read_cache(breed):
-    if not (cache_files.get(breed) is None):
-        return cache_files[breed]["image_url"]
-    return None
+        self.breed = breed
+        self.breedkey = breedkey
+        self.img_url = img_url
 
-def check_cache(breed):
-    now = datetime.now()
+        print(self.breed)
+        print(self.breedkey)
+        print(img_url)
 
-    cache_file_expire = cache_files[breed]["expire"]
-    if int(now.strftime("%H%M%S")) > cache_file_expire:
+    def write(self):
+        now = datetime.now()
+        cache_files[self.breed] = {
+            "breed_id": self.breedkey,
+            "expire": int(now.strftime("%H%M%S")) + 10,
+            "image_url": self.img_url
+        }
+
+    def read(self):
+        if not (cache_files.get(self.breed) is None):
+            return cache_files[self.breed]["image_url"]
         return None
-    else:
-        return "IDK"
+
+    def check(self):
+        now = datetime.now()
+
+        if int(now.strftime("%H%M%S")) > cache_files[self.breed]["expire"]:
+            return True
+
 
 
 # Main class to access all different functions
@@ -70,17 +76,19 @@ class Tcaw:
                 if get_request.status_code != 200:
                     return "Error, got a invalid respone!"
 
-                if read_cache(breed_input) == None:   
+                if Cache.read(breed_input) == None:   
                     print("DEBUG, writing to cache")
-                    return write_cache(breed=breed_input, breedkey=key["id"], img_url=get_request.json()[0]["url"])
+                    Cache.write(breed=breed_input, breedkey=key["id"], img_url=get_request.json()[0]["url"])
+                    return breed_input, key["id"], get_request.json()[0]["url"]
 
-                if check_cache(breed=breed_input) == None:
+                if Cache.check(breed=breed_input):
                     print("DEBUG, expired, writing new to cache")
-                    return write_cache(breed=breed_input, breedkey=key["id"], img_url=get_request.json()[0]["url"])
-                
-                if check_cache != None:
+                    Cache.check(breed=breed_input, breedkey=key["id"], img_url=get_request.json()[0]["url"])
+                    return breed_input, key["id"], get_request.json()[0]["url"]
+
+                if Cache.check != None:
                     print("DEBUG, reading from cache")
-                    return read_cache(breed=breed_input)
+                    return Cache.read(breed=breed_input)
 
 
         
@@ -94,20 +102,3 @@ def handling_url(get_request):
             return get_request.json()[0]["url"]
         # If result is nothing return "No result"
         return "Error, no results!"        
-
-
-
-# UI
-while True:
-    # Getting image of a cat breed
-    input_breed_user = input(">").lower()
-
-    if input_breed_user == "exit":
-        break
-
-    if input_breed_user == "random":
-        print(Tcaw.get_random_image())        
-    else:
-        print(Tcaw.get_breed_image(input_breed_user))
-
-

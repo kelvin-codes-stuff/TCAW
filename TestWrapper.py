@@ -1,8 +1,14 @@
 from TheCatApiWrapper import *
 
-# Getting a random cat image
-print(Tcaw.get_random_image())
+# UI
+while True:
+    # Getting image of a cat breed
+    input_breed_user = input(">").lower()
 
-# Getting image of a cat breed
-print(Tcaw.get_breed_image("toyger"))
+    if input_breed_user == "exit":
+        break
 
+    if input_breed_user == "random":
+        print(Tcaw.get_random_image())        
+    else:
+        print(Tcaw.get_breed_image(input_breed_user))
