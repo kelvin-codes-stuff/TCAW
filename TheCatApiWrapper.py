@@ -63,7 +63,8 @@ class Tcaw:
 
 
     # Gets a image from the requested cat breed
-    def get_breed_image(breed):
+    def get_breed_image(self, breed):
+        cache = Cache()
         # Request all breeds, if breed is in the request, get the id from that breed
         for key in requests.get("https://api.thecatapi.com/v1/breeds").json():
             # if key is breed input, add id from that breed to cat_id
@@ -75,9 +76,9 @@ class Tcaw:
                 if get_request.status_code != 200:
                     return "Error, got a invalid respone!"
 
-                if Cache.read(breed) == None:   
+                if self.cache.read(breed) == None:   
                     print("DEBUG, writing to cache")
-                    Cache.write(breed, breedkey=key["id"], img_url=get_request.json()[0]["url"])
+                    self.cache.write(breed, breedkey=key["id"], img_url=get_request.json()[0]["url"])
                     return breed, key["id"], get_request.json()[0]["url"]
 
                 if Cache.check(breed):
