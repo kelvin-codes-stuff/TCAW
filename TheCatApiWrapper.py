@@ -28,9 +28,7 @@ class Cache:
         self.breedkey = breedkey
         self.img_url = img_url
 
-        print(self.breed)
-        print(self.breedkey)
-        print(img_url)
+        print(self.breed, self.breed)
 
     def write(self):
         now = datetime.now()
@@ -63,12 +61,13 @@ class Tcaw:
         # Execute handling_url while passing getRequest trough the function, and returning the value from handling_url to getRandomImage
         return handling_url(get_request)
 
+
     # Gets a image from the requested cat breed
-    def get_breed_image(breed_input):
+    def get_breed_image(breed):
         # Request all breeds, if breed is in the request, get the id from that breed
         for key in requests.get("https://api.thecatapi.com/v1/breeds").json():
             # if key is breed input, add id from that breed to cat_id
-            if key["name"].lower() == breed_input.lower():
+            if key["name"].lower() == breed.lower():
                 
                 # Making the request with joined URL, cat breed and header for the API KEY
                 get_request = requests.get(BASE_API_URL + "images/search?" + key["id"], headers=HEADERS)
@@ -76,19 +75,19 @@ class Tcaw:
                 if get_request.status_code != 200:
                     return "Error, got a invalid respone!"
 
-                if Cache.read(breed_input) == None:   
+                if Cache.read(breed) == None:   
                     print("DEBUG, writing to cache")
-                    Cache.write(breed=breed_input, breedkey=key["id"], img_url=get_request.json()[0]["url"])
-                    return breed_input, key["id"], get_request.json()[0]["url"]
+                    Cache.write(breed, breedkey=key["id"], img_url=get_request.json()[0]["url"])
+                    return breed, key["id"], get_request.json()[0]["url"]
 
-                if Cache.check(breed=breed_input):
+                if Cache.check(breed):
                     print("DEBUG, expired, writing new to cache")
-                    Cache.check(breed=breed_input, breedkey=key["id"], img_url=get_request.json()[0]["url"])
-                    return breed_input, key["id"], get_request.json()[0]["url"]
+                    Cache.check(breed, breedkey=key["id"], img_url=get_request.json()[0]["url"])
+                    return breed, key["id"], get_request.json()[0]["url"]
 
-                if Cache.check != None:
+                if Cache.check(breed) != None:
                     print("DEBUG, reading from cache")
-                    return Cache.read(breed=breed_input)
+                    return Cache.read(breed)
 
 
         
